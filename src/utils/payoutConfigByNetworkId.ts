@@ -8,6 +8,10 @@ export const PAYMENT_TOKEN_PER_NETWORK: Record<string, { rpc: string; token: str
     rpc: "https://rpc.gnosischain.com",
     token: "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d", // WXDAI
   },
+  "31337": {
+    rpc: "http://localhost:8545",
+    token: "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d", // WXDAI
+  },
 };
 
 export function getPayoutConfigByNetworkId(evmNetworkId: number) {

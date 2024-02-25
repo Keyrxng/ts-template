@@ -29,6 +29,9 @@
   ],
   "dependencies": {
     "@uniswap/permit2-sdk": "^1.2.0",
+    "@octokit/webhooks": "^12.0.10",
+    "@octokit/webhooks-types": "^7.3.1",
+    "@sinclair/typebox": "^0.32.5",
     "blake2b": "^2.1.4",
     "decimal.js": "^10.4.3",
     "dotenv": "^16.4.4",

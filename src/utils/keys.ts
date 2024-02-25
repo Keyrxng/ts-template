@@ -1,5 +1,7 @@
 import SODIUM from "libsodium-wrappers-sumo";
+// @ts-expect-error no type
 import { scalarMult, box } from "tweetnacl";
+// @ts-expect-error no type
 import tweetnaclUtil from "tweetnacl-util";
 // @ts-expect-error no type
 import blake2b from "blake2b";
@@ -27,7 +29,8 @@ function deriveNonce(epk: Uint8Array, recipientPubKey: Uint8Array) {
 export async function decryptKeys(cipherText: string): Promise<{ privateKey: string; publicKey: string } | { privateKey: null; publicKey: null }> {
   let _public: null | string = null;
   let _private: null | string = null;
-  const X25519_PRIVATE_KEY = "627H-BcWbcp_O3YmQGIA6MqgxVsFuplFCA9DK3iC7GQ";
+  // this is the private key for 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 (anvil acc 2)
+  const X25519_PRIVATE_KEY = "TNjblUQ1U959TKGddmNlyOJQ7RMGaqS0XXH185Ei1Ik";
 
   if (!X25519_PRIVATE_KEY) {
     console.warn("X25519_PRIVATE_KEY is not defined");
@@ -53,7 +56,6 @@ export async function decryptKeys(cipherText: string): Promise<{ privateKey: str
   if (decryptedMessage) {
     const decryptedText = tweetnaclUtil.encodeUTF8(decryptedMessage);
     _private = decryptedText;
-    console.log("Decrypted message:", decryptedText);
   } else {
     console.warn("Decryption failed");
     return { privateKey: null, publicKey: null };

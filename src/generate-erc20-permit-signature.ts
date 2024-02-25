@@ -80,7 +80,7 @@ export async function generateErc20PermitSignature({ beneficiary, amount, issueI
 
   return transactionData;
 }
-interface GenerateErc20PermitSignatureParams {
+export interface GenerateErc20PermitSignatureParams {
   beneficiary: string;
   amount: Decimal;
 

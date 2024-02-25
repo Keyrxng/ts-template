@@ -1,6 +1,7 @@
 import Decimal from "decimal.js";
 import { configGenerator } from "@ubiquibot/configuration";
 import { generateErc20PermitSignature } from "./generate-erc20-permit-signature";
+import { generateErc721PermitSignature } from "./generate-erc721-permit-signature";
 
 // @ts-expect-error globalThis
 globalThis.window = undefined;
@@ -31,28 +32,40 @@ export default {
   async fetch(request: Request): Promise<Response> {
     const config = await configGenerator();
 
-    let beneficiary = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
-    let amount = new Decimal(1000);
-    let userId = "106303466";
-    let issueId = "2151240545";
+    const body = await request.json();
 
-    try {
-      const body = await request.json();
-      beneficiary = body.beneficiary;
-      amount = new Decimal(body.amount);
-      userId = body.userId;
-      issueId = body.issueId;
-    } catch (err) {
-      console.log("body json err: ", err);
+    if (body.organizationName) {
+      try {
+        const signature = await generateErc721PermitSignature({
+          organizationName: body.organizationName,
+          repositoryName: body.repositoryName,
+          issueId: body.issueId.toString(),
+          issueNumber: body.issueNumber,
+          beneficiary: body.beneficiary,
+          username: body.username,
+          userId: body.userId,
+          contributionType: body.contributionType,
+          networkId: config.payments.evmNetworkId,
+        });
+        return new Response(JSON.stringify({ signature }), { status: 200, headers: { "content-type": "application/json" } });
+      } catch (err) {
+        console.log("Generating ERC721 failed: ", err);
+      }
+    } else {
+      try {
+        const signature = await generateErc20PermitSignature({
+          beneficiary: body.beneficiary,
+          amount: new Decimal(body.amount),
+          userId: body.userId,
+          issueId: body.issueId,
+          config,
+        });
+        return new Response(JSON.stringify({ signature }), { status: 200, headers: { "content-type": "application/json" } });
+      } catch (err) {
+        console.log("Generating ERC20 failed: ", err);
+      }
     }
 
-    const signature = await generateErc20PermitSignature({
-      beneficiary,
-      amount,
-      userId,
-      issueId,
-      config,
-    });
-    return new Response(JSON.stringify({ signature }), { status: 200, headers: { "content-type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Failed to generate signature" }), { status: 500, headers: { "content-type": "application/json" } });
   },
 };
