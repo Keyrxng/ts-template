@@ -1,8 +1,6 @@
 name: Warn for Empty Strings
 
-on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+on: pull_request
 
 permissions:
   issues: write
@@ -19,29 +17,36 @@ jobs:
       - name: Find empty strings in TypeScript files
         id: find_empty_strings
         run: |
-          output=$(grep -Rn --include=\*.ts "''\|\"\"" --exclude-dir={node_modules,dist,out} .)
+          # Find empty strings and mark them explicitly
+          output=$(grep -Rn --include=\*.ts "''\|\"\"" --exclude-dir={node_modules,dist,out} . || true)
+
           if [ -z "$output" ]; then
             echo "::set-output name=results::No empty strings found."
+            exit 0
           else
+            output=$(echo "$output" | sed 's/""/"[EMPTY STRING]"/g' | sed "s/''/'[EMPTY STRING]'/g")
             echo "::set-output name=results::${output//$'\n'/%0A}"
           fi
-        continue-on-error: true
 
-      - name: Post comment with findings
+      - name: findings
         if: steps.find_empty_strings.outputs.results != 'No empty strings found.'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const results = `${{ steps.find_empty_strings.outputs.results }}`.replace(/%0A/g, '\n');
-            const commentBody = `## 🚨 Empty String Usage Detected 🚨\n\n` +
-                                `The following occurrences of empty strings were detected. Please review them to ensure their usage is necessary:\n\n` +
-                                '```plaintext\n' + results + '\n```\n\n' +
-                                'Consider replacing empty strings with more descriptive alternatives if applicable.';
-            const prNumber = context.payload.pull_request.number;
+        run: |
+          if [ "${{ steps.find_empty_strings.outputs.results }}" == "No empty strings found." ]; then
+            echo "No empty strings found. No action required."
+          else
+            echo "::warning::Empty strings found in the following files:"
+            echo "${{ steps.find_empty_strings.outputs.results }}"
+          fi
 
-            github.rest.issues.createComment({
-              issue_number: prNumber,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: commentBody
-            });
+      - name: Comment on PR
+        if: steps.find_empty_strings.outputs.results != 'No empty strings found.'
+        uses: KeisukeYamashita/create-comment@v1
+        with:
+          comment: |
+            ## Empty String Usage Detected
+
+            The following occurrences of empty strings were detected. Please review them to ensure their usage is necessary:
+
+            \```plaintext
+            ${{ steps.find_empty_strings.outputs.results }}
+            \```
