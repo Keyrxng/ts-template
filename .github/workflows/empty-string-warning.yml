@@ -1,6 +1,10 @@
 name: Warn for Empty Strings
 
-on: [pull_request]
+on:
+  pull_request:
+    paths:
+      - "**.ts"
+      - "**.tsx"
 
 permissions:
   issues: write
