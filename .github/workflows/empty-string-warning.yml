@@ -3,8 +3,8 @@ name: Warn for Empty Strings
 on:
   pull_request:
     paths:
-      - "**.ts"
-      - "**.tsx"
+      - "**/*.ts"
+      - "**/*.tsx"
 
 permissions:
   issues: write
